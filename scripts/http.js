@@ -50,7 +50,8 @@ const agent = new HttpsProxyAgent(randomProxyUrl);
 // Cấu hình các options cho request
 const options = {
   hostname: 'smax.ai', // Host có thể là IP hoặc domain
-  path: randomPath,
+  port: 80,
+  path: '/main.5b7006bd94a178d1.js',
   method: 'GET',
   // agent: agent,
 };
