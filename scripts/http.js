@@ -57,7 +57,7 @@ const options = {
 
 const req = http.request(options, (res) => {
   console.log(`Mã trạng thái: ${res.statusCode}`);
-  res.destroy();
+  // res.destroy();
   // res.setEncoding('utf8');
   // res.on('data', (chunk) => {
   //   // Xử lý dữ liệu nhận được từ server nếu cần
