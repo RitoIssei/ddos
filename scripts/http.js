@@ -34,7 +34,7 @@ const proxies = [
 const paths = [
   '/main.5b7006bd94a178d1.js',
   '/styles.31c53bd6dcd6696c.css',
-  '/4052.cd508436862493fe.js'
+  '/4052.cd508436862493fe.js',
 ];
 
 // Chọn ngẫu nhiên một proxy và một path từ các mảng
@@ -57,14 +57,15 @@ const options = {
 
 const req = http.request(options, (res) => {
   console.log(`Mã trạng thái: ${res.statusCode}`);
-  res.setEncoding('utf8');
-  res.on('data', (chunk) => {
-    // Xử lý dữ liệu nhận được từ server nếu cần
-    // console.log(`Dữ liệu nhận được: ${chunk}`);
-  });
-  res.on('end', () => {
-    // console.log('Đã nhận hết dữ liệu phản hồi.');
-  });
+  res.destroy();
+  // res.setEncoding('utf8');
+  // res.on('data', (chunk) => {
+  //   // Xử lý dữ liệu nhận được từ server nếu cần
+  //   // console.log(`Dữ liệu nhận được: ${chunk}`);
+  // });
+  // res.on('end', () => {
+  //   // console.log('Đã nhận hết dữ liệu phản hồi.');
+  // });
 });
 
 req.on('error', (e) => {
