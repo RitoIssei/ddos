@@ -56,7 +56,9 @@ const options = {
 };
 
 const req = http.request(options, (res) => {
-  console.log(`Mã trạng thái: ${res.statusCode}`);
+  if (res.statusCode !== 200) {
+    console.log(`Mã trạng thái: ${res.statusCode}`);
+  }
   // res.destroy();
   // res.setEncoding('utf8');
   // res.on('data', (chunk) => {
