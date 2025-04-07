@@ -1,44 +1,55 @@
-// runner.js
-import fs   from 'fs';
+import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
-import { createRequire } from 'module';
+import { fileURLToPath, pathToFileURL } from 'url';
 
+// Xác định __dirname trong ES Module
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
 
+// Thư mục chứa các file script
 const scriptsDir = path.join(__dirname, 'scripts');
-const fileName   = process.argv[2] || 'http.js';
-const freq       = parseFloat(process.argv[3]) || 30;
-const filePath   = path.join(scriptsDir, fileName);
 
+// Lấy tên file cần chạy từ đối số dòng lệnh, mặc định là 'http.js'
+const fileName  = process.argv[2] || 'http.js';
+// Lấy tần suất chạy (lần/giây) từ đối số dòng lệnh, mặc định là 50 lần mỗi giây
+const frequency = parseFloat(process.argv[3]) || 50;
+
+const filePath = path.join(scriptsDir, fileName);
 if (!fs.existsSync(filePath)) {
-  console.error(`❌ Không tìm thấy ${fileName}`);
+  console.error(`Không tìm thấy file ${fileName} trong thư mục ${scriptsDir}`);
   process.exit(1);
 }
 
-console.log(`🚀 Chạy ${fileName} @ ${freq} lần/giây`);
+console.log(`Đang chạy file: ${fileName} với tần suất ${frequency} lần mỗi giây`);
 
-const requireCJS   = createRequire(import.meta.url);
-const resolvedPath = requireCJS.resolve(filePath);
+const intervalMs = 1000 / frequency;
 
+// Biến đếm
+let totalCount    = 0;
+let intervalCount = 0;
+
+// Mỗi 10s log số request trong 10s và tổng từ đầu
+setInterval(() => {
+  console.log(`📬 Trong 10s vừa rồi: ${intervalCount} request — Tổng từ đầu: ${totalCount} request`);
+  intervalCount = 0;
+}, 10_000);
+
+// Hàm dynamic import với cache busting
 async function runScript() {
+  // tăng cả 2 biến đếm
+  intervalCount++;
+  totalCount++;
+
+  // Chuyển đổi filePath thành URL file:// và bust cache
+  const fileUrl   = pathToFileURL(filePath).href;
+  const moduleUrl = `${fileUrl}?update=${Date.now()}`;
+
   try {
-    // Xóa cache của CommonJS
-    delete requireCJS.cache[resolvedPath];
-
-    // Require module (module phải export 1 function)
-    const mod = requireCJS(filePath);
-    const fn  = typeof mod === 'function' ? mod : mod.default;
-    if (typeof fn === 'function') {
-      await fn();
-    }
-
-    // Nếu chạy Node với --expose-gc, ta có thể ép GC:
-    if (global.gc) global.gc();
+    await import(moduleUrl);
   } catch (err) {
-    console.error(`❌ Lỗi khi chạy ${fileName}:`, err);
+    console.error(`Lỗi khi chạy file ${fileName}: ${err.message}`);
   }
 }
 
-setInterval(runScript, 1000 / freq);
+// Khởi chạy theo tần suất
+setInterval(runScript, intervalMs);
