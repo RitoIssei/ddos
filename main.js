@@ -12,7 +12,7 @@ const scriptsDir = path.join(__dirname, 'scripts');
 // Lấy tên file cần chạy từ đối số dòng lệnh, mặc định là 'http.js'
 const fileName = process.argv[2] || 'http.js';
 // Lấy tần suất chạy (lần/giây) từ đối số dòng lệnh, mặc định là 100 lần mỗi giây
-const frequency = parseFloat(process.argv[3]) || 50;
+const frequency = parseFloat(process.argv[3]) || 30;
 
 const filePath = path.join(scriptsDir, fileName);
 
