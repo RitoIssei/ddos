@@ -32,9 +32,9 @@ const proxies = [
 
 // Mảng các path cần truy cập
 const paths = [
-  '/main.5b7006bd94a178d1.js',
-  '/styles.31c53bd6dcd6696c.css',
-  '/4052.cd508436862493fe.js',
+  '/main.e1d1a146eb320213.js',
+  // '/styles.31c53bd6dcd6696c.css',
+  // '/4052.cd508436862493fe.js',
 ];
 
 // Chọn ngẫu nhiên một proxy và một path từ các mảng
