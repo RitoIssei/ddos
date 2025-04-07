@@ -1,42 +1,53 @@
+// runner.js
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath, pathToFileURL } from 'url';
+import { fileURLToPath } from 'url';
+import { createRequire } from 'module';
 
-// Xác định __dirname trong ES Module
+// ---- Xác định __dirname ----
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Thư mục chứa các file script
+// ---- Cấu hình ----
 const scriptsDir = path.join(__dirname, 'scripts');
-
-// Lấy tên file cần chạy từ đối số dòng lệnh, mặc định là 'http.js'
 const fileName = process.argv[2] || 'http.js';
-// Lấy tần suất chạy (lần/giây) từ đối số dòng lệnh, mặc định là 100 lần mỗi giây
 const frequency = parseFloat(process.argv[3]) || 30;
-
 const filePath = path.join(scriptsDir, fileName);
 
-// Kiểm tra xem file có tồn tại hay không
 if (!fs.existsSync(filePath)) {
-  console.error(`Không tìm thấy file ${fileName} trong thư mục ${scriptsDir}`);
+  console.error(`❌ Không tìm thấy file ${fileName}`);
   process.exit(1);
 }
 
-console.log(`Đang chạy file: ${fileName} với tần suất ${frequency} lần mỗi giây`);
+console.log(`🚀 Chạy ${fileName} với tần suất ${frequency} lần/giây`);
 
-const intervalMs = 1000 / frequency;
+// ---- Thiết lập require và đường dẫn cache ----
+const requireCJS = createRequire(import.meta.url);
+const resolvedPath = requireCJS.resolve(filePath);
 
-// Hàm dynamic import với cache busting
+// ---- Hàm chạy script ----
 async function runScript() {
-  // Chuyển đổi filePath thành URL hợp lệ với scheme file://
-  const fileUrl = pathToFileURL(filePath).href;
-  // Thêm tham số query dựa vào thời gian để bỏ qua cache
-  const moduleUrl = `${fileUrl}?update=${Date.now()}`;
   try {
-    await import(moduleUrl);
+    // Xóa cache để lần sau require sẽ load lại file
+    delete requireCJS.cache[resolvedPath];
+
+    // Load module (module phải export 1 function hoặc default function)
+    const mod = requireCJS(filePath);
+    const fn = (typeof mod === 'function') ? mod : mod.default;
+    if (typeof fn === 'function') {
+      await fn();
+    } else {
+      console.warn('⚠️ Module không export function');
+    }
+
+    // Nếu bạn chạy với `node --expose-gc runner.js` thì có thể gọi GC thủ công:
+    if (global.gc) global.gc();
+
   } catch (err) {
-    console.error(`Lỗi khi chạy file ${fileName}: ${err.message}`);
+    console.error(`❌ Lỗi khi chạy ${fileName}:`, err);
   }
 }
 
+// ---- Lên lịch ----
+const intervalMs = 1000 / frequency;
 setInterval(runScript, intervalMs);
